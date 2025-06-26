@@ -54,21 +54,24 @@ class ObjectDetectionNode(Node):
                 ("object_detection_info_topic", "detection_info"),
                 ("camera_lidar_sync_queue_size", 10),
                 ("camera_lidar_sync_slop", 0.05),
-                ("project_config", "projector_config.yaml"),
+                ("project_config", "projector_config_262.yaml"),
                 ("architecture", "yolo"),
-                ("model", "yolov5n6"),
+                ("model", "yolov5l6"),
                 ("model_dir_path", ""),
                 ("device", "cpu"),
-                ("confident", 0.4),
+                ("confident", 0.09),
                 ("iou", 0.1),
                 ("model_method", "hdbscan"),
-                ("ground_percentage", 25),
+                ("ground_percentage", 30),
                 ("bb_contract_percentage", 10),
                 ("distance_estimator_type", "none"),
                 ("distance_estimator_save_data", False),
                 ("object_specific_file", "object_specific.yaml"),
                 ("min_cluster_size", 5),
                 ("cluster_selection_epsilon", 0.08),
+
+                ### added new params for filter ###
+                ("detect_classes", ["backpack", "umbrella", "stop sign", "clock", "bottle"]),
             ],
         )
 
@@ -135,7 +138,7 @@ class ObjectDetectionNode(Node):
                 "confident": self.get_parameter("confident").value,
                 "iou": self.get_parameter("iou").value,
                 "checkpoint": None,
-                "classes": None,
+                "classes": self.get_parameter("detect_classes").value,
                 "multiple_instance": False,
             },
         )

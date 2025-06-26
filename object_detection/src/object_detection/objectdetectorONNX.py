@@ -16,6 +16,11 @@ class ObjectDetectorONNX:
         self.confident = config["confident"]
         self.iou = config["iou"]
         self.classes = config["classes"]
+
+        ### added desired class names and ids ###
+        self.desired_class_names = ["backpack", "umbrella", "stop sign", "clock", "bottle"]
+        self.desired_class_ids = [24, 25, 11, 74, 39]
+
         self.multiple_instance = config["multiple_instance"]
         self.detector = None
         self.class_dict = {
@@ -159,7 +164,7 @@ class ObjectDetectorONNX:
         pad_top,
         pad_left,
         input_size=1280,
-        conf_threshold=0.5,
+        conf_threshold=0.09,
     ):
         try:
             # Ensure detection is a numpy array
@@ -208,20 +213,43 @@ class ObjectDetectorONNX:
             x2 = np.clip(x2, 0, original_width)
             y2 = np.clip(y2, 0, original_height)
 
-            # Map class indices to class names
+            # # Map class indices to class names
+            # filtered_names = [self.class_dict[c] for c in class_indices]
+
+            # result_df = pd.DataFrame(
+            #     {
+            #         "xmin": x1,
+            #         "ymin": y1,
+            #         "xmax": x2,
+            #         "ymax": y2,
+            #         "confidence": confidences,
+            #         "class": class_indices,
+            #         "name": filtered_names,
+            #     }
+            # )
+    
+            ### filter only desired claass ###
+            keep_indices = [i for i, c in enumerate(class_indices) if c in self.desired_class_ids]
+            if not keep_indices:
+                return pd.DataFrame()
+
+            x1 = x1[keep_indices]
+            y1 = y1[keep_indices]
+            x2 = x2[keep_indices]
+            y2 = y2[keep_indices]
+            confidences = confidences[keep_indices]
+            class_indices = class_indices[keep_indices]
             filtered_names = [self.class_dict[c] for c in class_indices]
 
-            result_df = pd.DataFrame(
-                {
-                    "xmin": x1,
-                    "ymin": y1,
-                    "xmax": x2,
-                    "ymax": y2,
-                    "confidence": confidences,
-                    "class": class_indices,
-                    "name": filtered_names,
-                }
-            )
+            result_df = pd.DataFrame({
+                "xmin": x1,
+                "ymin": y1,
+                "xmax": x2,
+                "ymax": y2,
+                "confidence": confidences,
+                "class": class_indices,
+                "name": filtered_names,
+            })
 
             return result_df
 
